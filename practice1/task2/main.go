@@ -2,93 +2,119 @@ package main
 
 import "fmt"
 
-const maxEmployees = 512
-
 type Employee struct {
-	ID         int
-	FirstName  string
-	LastName   string
-	Department string
-	Position   string
+	Name     string
+	Age      int
+	Position string
+	Salary   int
 }
 
-type Office struct {
-	employees []Employee
-	nextID    int
-}
+const size = 512
 
-func NewOffice() *Office {
-	return &Office{
-		employees: make([]Employee, 0, maxEmployees),
-		nextID:    1,
+var commands = `
+1 - Добавить нового сотрудника
+2 - Удалить сотрудника
+3 - Вывести список сотрудников
+4 - Выйти из программы
+`
+
+func main() {
+	employees := [size]*Employee{}
+
+	for {
+		var command int
+
+		fmt.Print(commands)
+		fmt.Print("Введите команду: ")
+		fmt.Scan(&command)
+
+		switch command {
+		case 1:
+			addEmployee(&employees)
+		case 2:
+			deleteEmployee(&employees)
+		case 3:
+			printEmployees(employees)
+		case 4:
+			fmt.Println("Программа завершена")
+			return
+		default:
+			fmt.Println("Неизвестная команда")
+		}
 	}
 }
 
-func (office *Office) AddEmployee(firstName, lastName, department, position string) bool {
-	if len(office.employees) >= maxEmployees {
-		return false
-	}
+func addEmployee(employees *[size]*Employee) {
+	index := -1
 
-	employee := Employee{
-		ID:         office.nextID,
-		FirstName:  firstName,
-		LastName:   lastName,
-		Department: department,
-		Position:   position,
-	}
-
-	office.employees = append(office.employees, employee)
-	office.nextID++
-
-	return true
-}
-
-func (office *Office) DeleteEmployeeByID(id int) bool {
-	for index, employee := range office.employees {
-		if employee.ID == id {
-			office.employees = append(office.employees[:index], office.employees[index+1:]...)
-			return true
+	for i := 0; i < size; i++ {
+		if employees[i] == nil {
+			index = i
+			break
 		}
 	}
 
-	return false
-}
-
-func (office *Office) PrintEmployees() {
-	if len(office.employees) == 0 {
-		fmt.Println("Список сотрудников пуст")
+	if index == -1 {
+		fmt.Println("Нельзя добавить больше 512 сотрудников")
 		return
 	}
 
-	for _, employee := range office.employees {
-		fmt.Printf(
-			"%d. %s %s, отдел: %s, должность: %s\n",
-			employee.ID,
-			employee.FirstName,
-			employee.LastName,
-			employee.Department,
-			employee.Position,
-		)
-	}
+	employee := new(Employee)
+
+	fmt.Print("Имя: ")
+	fmt.Scan(&employee.Name)
+
+	fmt.Print("Возраст: ")
+	fmt.Scan(&employee.Age)
+
+	fmt.Print("Должность: ")
+	fmt.Scan(&employee.Position)
+
+	fmt.Print("Зарплата: ")
+	fmt.Scan(&employee.Salary)
+
+	employees[index] = employee
+
+	fmt.Println("Сотрудник добавлен")
 }
 
-func main() {
-	office := NewOffice()
+func deleteEmployee(employees *[size]*Employee) {
+	var number int
 
-	office.AddEmployee("Иван", "Иванов", "Разработка", "Go-разработчик")
-	office.AddEmployee("Анна", "Петрова", "Тестирование", "QA-инженер")
-	office.AddEmployee("Павел", "Сидоров", "Аналитика", "Бизнес-аналитик")
+	fmt.Print("Введите номер сотрудника для удаления: ")
+	fmt.Scan(&number)
 
-	fmt.Println("Сотрудники после добавления:")
-	office.PrintEmployees()
+	index := number - 1
 
-	deleted := office.DeleteEmployeeByID(2)
-	if deleted {
-		fmt.Println("\nСотрудник с ID 2 удален")
-	} else {
-		fmt.Println("\nСотрудник с ID 2 не найден")
+	if index < 0 || index >= size || employees[index] == nil {
+		fmt.Println("Сотрудник не найден")
+		return
 	}
 
-	fmt.Println("\nСотрудники после удаления:")
-	office.PrintEmployees()
+	employees[index] = nil
+
+	fmt.Println("Сотрудник удален")
+}
+
+func printEmployees(employees [size]*Employee) {
+	hasEmployees := false
+
+	for i := 0; i < size; i++ {
+		if employees[i] != nil {
+			fmt.Printf(
+				"%d. Имя: %s, возраст: %d, должность: %s, зарплата: %d\n",
+				i+1,
+				employees[i].Name,
+				employees[i].Age,
+				employees[i].Position,
+				employees[i].Salary,
+			)
+
+			hasEmployees = true
+		}
+	}
+
+	if !hasEmployees {
+		fmt.Println("Список сотрудников пуст")
+	}
 }
